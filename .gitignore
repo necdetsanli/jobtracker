@@ -1,29 +1,62 @@
-# Build artifacts
+# Build directories
 /build/
-/CMakeFiles/
-/CMakeCache.txt
-cmake_install.cmake
+/build-release/
+/cmake-build-*/
+
+# CMake generated files (if accidentally created in the source tree)
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
 Makefile
+cmake_install.cmake
+install_manifest.txt
 
-# Binaries and libraries
-/bin/
-/lib/
+# Compilation database (uncomment if you do NOT want this tracked)
+/compile_commands.json
 
-# Compilation database
-compile_commands.json
+# Compiled object files
+*.o
+*.obj
+*.lo
+*.la
 
-# Local data files (SQLite DB etc.)
-/data/*.db
+# Static & shared libraries
+*.a
+*.lib
+*.so
+*.so.*
+*.dll
+*.dylib
 
-# Python virtualenv
-/.venv/
+# Executables
+*.exe
+*.out
+*.app
 
-# Qt / IDE junk
-*.user
-*.pro.user
-*.qbs.user
-*.qmlproject.user
+# Editor / IDE settings
+.vscode/
+.idea/
+*.code-workspace
 
-# OS-specific
+# OS-specific junk
 .DS_Store
 Thumbs.db
+
+# Local runtime data (databases, logs, etc.)
+/data/*.db
+/data/*.sqlite
+/data/*.log
+
+# Test / coverage artifacts
+*.gcda
+*.gcno
+*.gcov
+/coverage/
+/lcov.info
+
+# Sanitizer logs
+asan.log
+lsan.log
+tsan.log
+ubsan.log
