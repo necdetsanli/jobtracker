@@ -14,6 +14,21 @@ target_include_directories(jobtracker_core
 # SQLite storage layer
 add_subdirectory(storage)
 
+# Import layer
+add_library(jobtracker_import
+	import/import_service.cpp
+)
+
+target_link_libraries(jobtracker_import
+	PUBLIC
+		jobtracker_core
+)
+
+target_include_directories(jobtracker_import
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 # CLI library (argument parsing)
 add_library(jobtracker_cli_lib
 	cli/command_line.cpp
@@ -23,6 +38,7 @@ target_link_libraries(jobtracker_cli_lib
 	PUBLIC
 		jobtracker_core
 		jobtracker_storage_sqlite
+		jobtracker_import
 )
 
 target_include_directories(jobtracker_cli_lib

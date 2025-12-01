@@ -7,6 +7,7 @@ set(TEST_SOURCES
 	core/test_job_tracker.cpp
 	storage/test_sqlite_repository.cpp
 	cli/test_command_line.cpp
+	import/test_import_service.cpp
 )
 
 add_executable(jobtracker_tests ${TEST_SOURCES})
@@ -15,6 +16,7 @@ target_link_libraries(jobtracker_tests
 	PRIVATE
 		jobtracker_core
 		jobtracker_storage_sqlite
+		jobtracker_import
 		jobtracker_cli_lib
 		Catch2::Catch2WithMain
 )
