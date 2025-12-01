@@ -1,48 +1,76 @@
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "core/application.h"
-#include "core/application_repository.h"
+#include "core/statistics.h"
+#include "storage/application_repository.h"
 
 /**
- * @brief High-level facade for managing job applications.
+ * @brief High-level service that manages job applications.
  *
- * JobTracker coordinates between the domain model (Application) and
- * the persistence layer (IApplicationRepository). It exposes high-level
- * operations used by the CLI and GUI layers.
+ * This service provides a convenient API on top of the application repository
+ * for common operations such as adding, listing and updating applications.
  */
 class JobTracker
 {
 public:
 	/**
-	 * @brief Construct a JobTracker that uses the given repository.
+	 * @brief Construct a JobTracker that operates on the given repository.
 	 *
-	 * @param repository The application repository used for persistence.
+	 * @param repository Underlying repository used to persist and load applications.
 	 */
 	explicit JobTracker(IApplicationRepository &repository);
 
 	/**
-	 * @brief Add a new application to the tracker.
+	 * @brief Add a new application based on a template.
 	 *
-	 * @param app The application to be added.
+	 * The template's id is ignored (it will be reset to 0 so the storage layer
+	 * can assign a primary key). If status is empty, a default value such as
+	 * "applied" may be used.
+	 *
+	 * @param application_template Template for the new application.
+	 * @return The persisted Application with an assigned id.
 	 */
-	void add_application(const Application &app);
+	Application add(const Application &application_template);
 
 	/**
-	 * @brief Retrieve all tracked applications.
-	 *
-	 * @return A vector containing all applications.
+	 * @brief Return all applications from the repository.
 	 */
-	[[nodiscard]] std::vector<Application> list_all() const;
+	std::vector<Application> list_all() const;
 
 	/**
-	 * @brief Find applications by status.
+	 * @brief Return all applications that have the given status.
 	 *
 	 * @param status Status filter (e.g. "applied", "interview").
-	 * @return A vector of matching applications.
 	 */
-	[[nodiscard]] std::vector<Application> find_by_status(const std::string &status) const;
+	std::vector<Application> filter_by_status(const std::string &status) const;
+
+	/**
+	 * @brief Update the status (and optional note) of an application.
+	 *
+	 * @param id         Id of the application to update.
+	 * @param new_status New status value.
+	 * @param note       Optional note to append to the application's notes field.
+	 * @return true if the application existed and was updated; false otherwise.
+	 */
+	bool update_status(int id, const std::string &new_status, const std::string &note);
+
+	/**
+	 * @brief Remove an application by id.
+	 *
+	 * @param id Id of the application to remove.
+	 * @return true if a row was removed; false if no matching id existed.
+	 */
+	bool remove(int id);
+
+	/**
+	 * @brief Compute aggregated statistics across all applications.
+	 *
+	 * @return Statistics structure with counts by status.
+	 */
+	Statistics compute_statistics() const;
 
 private:
 	/// Underlying repository used to persist and load applications.

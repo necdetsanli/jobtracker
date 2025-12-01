@@ -60,7 +60,7 @@ int main(int argc, char **argv)
 		}
 
 		auto repository = std::make_unique<SqliteApplicationRepository>(options.database_path);
-		JobTracker tracker(std::move(repository));
+		JobTracker tracker(*repository);
 
 		if (options.command == CommandType::List)
 		{
@@ -148,10 +148,10 @@ int main(int argc, char **argv)
 			}
 
 			auto repository = std::make_unique<SqliteApplicationRepository>(options.database_path);
-			JobTracker tracker(std::move(repository));
+			JobTracker tracker(*repository);
 
 			CsvImportSource source(options.csv_path);
-			ImportService service(tracker, source);
+			ImportService service(source, *repository);
 
 			const ImportResult result = service.run_once();
 

@@ -4,6 +4,7 @@
 #include "util/string_utils.h"
 
 #include <cctype>
+#include <vector>
 
 namespace string_utils
 {

@@ -1,71 +1,65 @@
-/// \file
-/// \brief Implementation of the JobTracker service.
-
 #include "core/job_tracker.h"
 
-#include "storage/application_repository.h"
-#include "util/date_time.h"
-
-JobTracker::JobTracker(std::unique_ptr<IApplicationRepository> repository)
-	: repository_(std::move(repository))
+JobTracker::JobTracker(IApplicationRepository &repository)
+	: repository_(repository)
 {
 }
 
 Application JobTracker::add(const Application &application_template)
 {
-	Application to_save = application_template;
+	Application app = application_template;
 
-	if (to_save.status.empty())
+	// Ensure the storage layer assigns a fresh id.
+	app.id = 0;
+
+	// Provide a sensible default status if none is set.
+	if (app.status.empty())
 	{
-		to_save.status = "applied";
+		app.status = "applied";
 	}
 
-	const auto today = datetime::today_iso();
-
-	if (to_save.applied_date.empty())
-	{
-		to_save.applied_date = today;
-	}
-
-	if (to_save.last_update.empty())
-	{
-		to_save.last_update = today;
-	}
-
-	return repository_->insert(to_save);
+	return repository_.insert(app);
 }
 
 std::vector<Application> JobTracker::list_all() const
 {
-	return repository_->find_all();
+	return repository_.find_all();
 }
 
 std::vector<Application> JobTracker::filter_by_status(const std::string &status) const
 {
-	return repository_->find_by_status(status);
+	return repository_.find_by_status(status);
 }
 
 bool JobTracker::update_status(int id, const std::string &new_status, const std::string &note)
 {
-	auto existing = repository_->find_by_id(id);
+	auto existing = repository_.find_by_id(id);
 	if (!existing)
 	{
 		return false;
 	}
 
-	existing->status = new_status;
-	existing->notes = note;
-	existing->last_update = datetime::today_iso();
+	Application app = *existing;
+	app.status = new_status;
 
-	return repository_->update(*existing);
+	if (!note.empty())
+	{
+		if (!app.notes.empty())
+		{
+			app.notes += "\n";
+		}
+		app.notes += note;
+	}
+
+	return repository_.update(app);
 }
 
 bool JobTracker::remove(int id)
 {
-	return repository_->remove(id);
+	return repository_.remove(id);
 }
 
 Statistics JobTracker::compute_statistics() const
 {
-	return repository_->compute_statistics();
+	return repository_.compute_statistics();
 }

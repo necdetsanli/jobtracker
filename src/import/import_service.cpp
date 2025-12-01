@@ -1,31 +1,31 @@
-/// \file
-/// \brief Implementation of the ImportService.
-
 #include "import/import_service.h"
 
-#include "core/application.h"
-#include "core/job_tracker.h"
-#include "import/import_source.h"
-
-ImportService::ImportService(JobTracker &tracker, IImportSource &source)
-	: tracker_(tracker)
-	, source_(source)
+ImportService::ImportService(IImportSource &source, IApplicationRepository &repository)
+	: source_(source)
+	, repository_(repository)
 {
 }
 
 ImportResult ImportService::run_once()
 {
-	ImportResult result;
+	ImportResult result{};
 
-	auto applications = source_.fetch_applications();
-	result.total = applications.size();
+	const auto templates = source_.fetch_applications();
+	result.total = templates.size();
 
-	for (const auto &app_template : applications)
+	for (const auto &tmpl : templates)
 	{
-		Application saved = tracker_.add(app_template);
-		if (saved.id != 0)
+		try
 		{
+			Application app = tmpl;
+			app.id = 0;
+
+			repository_.insert(app);
 			++result.imported;
+		}
+		catch (...)
+		{
+			++result.failed;
 		}
 	}
 

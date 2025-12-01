@@ -1,38 +1,50 @@
 #pragma once
 
-#include "core/job_tracker.h"
+#include <cstddef>
+
+#include "core/application.h"
+#include "core/statistics.h"
 #include "import/import_source.h"
+#include "storage/application_repository.h"
 
 /**
- * @brief Coordinates importing applications from a source into the tracker.
- *
- * ImportService pulls applications from an IImportSource and forwards them
- * to JobTracker. It is intentionally simple so that it can be reused from
- * the CLI or a future GUI.
+ * @brief Result of a single import run.
+ */
+struct ImportResult
+{
+	/// Total number of application templates obtained from the source.
+	std::size_t total = 0;
+
+	/// Number of applications successfully imported and persisted.
+	std::size_t imported = 0;
+
+	/// Number of applications that could not be imported.
+	std::size_t failed = 0;
+};
+
+/**
+ * @brief High-level service that imports applications from a source
+ *        into the application repository.
  */
 class ImportService
 {
 public:
 	/**
-	 * @brief Construct an ImportService with a JobTracker and an import source.
+	 * @brief Construct an ImportService.
 	 *
-	 * @param tracker JobTracker instance used to persist imported applications.
-	 * @param source Import source that provides Application objects.
+	 * @param source      Import source providing application templates.
+	 * @param repository  Repository used to persist imported applications.
 	 */
-	ImportService(JobTracker &tracker, IImportSource &source);
+	ImportService(IImportSource &source, IApplicationRepository &repository);
 
 	/**
-	 * @brief Import all applications from the source into the tracker.
+	 * @brief Fetch applications from the source and persist them once.
 	 *
-	 * This method fetches applications from the source and adds them
-	 * to the tracker one by one.
+	 * @return ImportResult structure with aggregated counts.
 	 */
-	void run_once();
+	ImportResult run_once();
 
 private:
-	/// High-level facade for persisting and managing applications.
-	JobTracker &tracker_;
-
-	/// Source that provides applications to be imported.
 	IImportSource &source_;
+	IApplicationRepository &repository_;
 };
