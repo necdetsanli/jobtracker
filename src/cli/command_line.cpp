@@ -9,6 +9,7 @@ CommandLineOptions parse_arguments(int argc, char **argv)
 {
 	CommandLineOptions options;
 
+	// No command provided: show help by default.
 	if (argc <= 1)
 	{
 		options.command = CommandType::Help;
@@ -38,6 +39,14 @@ CommandLineOptions parse_arguments(int argc, char **argv)
 	{
 		options.command = CommandType::ImportCsv;
 	}
+	else if (command == "import-remote-csv")
+	{
+		options.command = CommandType::ImportRemoteCsv;
+	}
+	else if (command == "import-imap")
+	{
+		options.command = CommandType::ImportImap;
+	}
 	else
 	{
 		options.command = CommandType::Unknown;
@@ -58,12 +67,36 @@ CommandLineOptions parse_arguments(int argc, char **argv)
 			return argv[i];
 		};
 
-		if (arg == "--db")
+		if (arg == "--db" || arg == "--database")
 		{
-			const char *value = require_value("--db");
+			const char *value = require_value("--database");
 			if (value != nullptr)
 			{
 				options.database_path = value;
+			}
+		}
+		else if (arg == "--csv")
+		{
+			const char *value = require_value("--csv");
+			if (value != nullptr)
+			{
+				options.csv_path = value;
+			}
+		}
+		else if (arg == "--remote-csv-url")
+		{
+			const char *value = require_value("--remote-csv-url");
+			if (value != nullptr)
+			{
+				options.remote_csv_url = value;
+			}
+		}
+		else if (arg == "--imap-config")
+		{
+			const char *value = require_value("--imap-config");
+			if (value != nullptr)
+			{
+				options.imap_config_path = value;
 			}
 		}
 		else if (arg == "--company")
@@ -114,13 +147,10 @@ CommandLineOptions parse_arguments(int argc, char **argv)
 				options.notes = value;
 			}
 		}
-		else if (arg == "--csv")
+		else
 		{
-			const char *value = require_value("--csv");
-			if (value != nullptr)
-			{
-				options.csv_path = value;
-			}
+			// Unknown or positional argument: keep it for potential future use.
+			options.extra_args.push_back(arg);
 		}
 	}
 

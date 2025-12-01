@@ -1,190 +1,239 @@
 /// \file
 /// \brief Entry point for the jobtracker CLI application.
 
-#include <exception>
-#include <iostream>
-#include <filesystem>
-
-
 #include "cli/command_line.h"
+#include "core/application.h"
 #include "core/job_tracker.h"
 #include "storage/sqlite_application_repository.h"
 #include "import/csv_import_source.h"
+#include "import/remote_csv_import_source.h"
 #include "import/import_service.h"
+#include "import/http_client.h"
 
+#include <exception>
+#include <iostream>
 
-static void print_help()
+/**
+ * @brief Print a short usage message to stdout.
+ */
+static void print_usage()
 {
 	std::cout
-		<< "Usage: jobtracker_cli <command> [options]\n"
-		<< "\n"
+		<< "jobtracker CLI\n\n"
+		<< "Usage:\n"
+		<< "  jobtracker_cli <command> [options]\n\n"
 		<< "Commands:\n"
-		<< "  list                 List all applications\n"
-		<< "  add                  Add a new application\n"
-		<< "  stats                Show application statistics\n"
-		<< "  import-csv           Import applications from a CSV file\n"
-		<< "  help                 Show this help message\n"
-		<< "\n"
+		<< "  help                   Show this help message\n"
+		<< "  list                   List all applications\n"
+		<< "  stats                  Show aggregated statistics\n"
+		<< "  add                    Add a single application from flags\n"
+		<< "  import-csv             Import applications from a local CSV file\n"
+		<< "  import-remote-csv      Import applications from a remote CSV URL\n"
+		<< "  import-imap            Import applications from an IMAP mailbox (not implemented yet)\n\n"
 		<< "Common options:\n"
-		<< "  --db PATH            Path to SQLite database (default: data/jobtracker.db)\n"
-		<< "\n"
-		<< "Options for 'add':\n"
-		<< "  --company NAME       Company name (required)\n"
-		<< "  --position TITLE     Position title (required)\n"
-		<< "  --location TEXT      Job location\n"
-		<< "  --source TEXT        Source of the application\n"
-		<< "  --status TEXT        Initial status (default: applied)\n"
-		<< "  --notes TEXT         Notes\n"
-		<< "\n"
-		<< "Options for 'import-csv':\n"
-		<< "  --csv PATH           Path to CSV file with applications\n";
+		<< "  --database <path>      Path to SQLite database file (required for most commands)\n"
+		<< "  --csv <path>           Path to local CSV file (import-csv)\n"
+		<< "  --remote-csv-url <url> Remote CSV URL (import-remote-csv)\n"
+		<< "  --imap-config <path>   Path to IMAP config file (import-imap)\n"
+		<< "  --company <name>       Company name (add)\n"
+		<< "  --position <title>     Position title (add)\n"
+		<< "  --location <location>  Job location (add)\n"
+		<< "  --source <source>      Source of application (add)\n"
+		<< "  --status <status>      Application status (add)\n"
+		<< "  --notes <text>         Free-form notes (add)\n";
 }
 
-
+/**
+ * @brief Entry point.
+ */
 int main(int argc, char **argv)
 {
 	try
 	{
 		CommandLineOptions options = parse_arguments(argc, argv);
 
-		if (options.command == CommandType::Help)
+		// Help or no command: just print usage and exit.
+		if (options.command == CommandType::Help || options.command == CommandType::None)
 		{
-			print_help();
+			print_usage();
 			return 0;
 		}
 
 		if (options.command == CommandType::Unknown)
 		{
-			std::cerr << "Unknown command. Use 'help' for usage information.\n";
+			std::cerr << "Unknown command. Use 'help' to see available commands.\n";
 			return 1;
 		}
 
-		auto repository = std::make_unique<SqliteApplicationRepository>(options.database_path);
-		JobTracker tracker(*repository);
+		// Commands that require a database.
+		const bool needs_database =
+			options.command == CommandType::List ||
+			options.command == CommandType::Stats ||
+			options.command == CommandType::Add ||
+			options.command == CommandType::ImportCsv ||
+			options.command == CommandType::ImportRemoteCsv ||
+			options.command == CommandType::ImportImap;
 
-		if (options.command == CommandType::List)
+		if (needs_database && options.database_path.empty())
 		{
-			const auto apps = tracker.list_all();
+			std::cerr << "Database path is required. Use --database <file>.\n";
+			return 1;
+		}
 
-			if (apps.empty())
+		// For commands that touch the database, construct repository + tracker.
+		SqliteApplicationRepository repository(options.database_path);
+		JobTracker tracker(repository);
+
+		switch (options.command)
+		{
+			case CommandType::List:
 			{
-				std::cout
-					<< "No applications found.\n"
-					<< "Use 'add' or 'import-csv' to create applications.\n";
+				const auto apps = tracker.list_all();
+
+				if (apps.empty())
+				{
+					std::cout << "No applications found.\n";
+					return 0;
+				}
+
+				for (const auto &app : apps)
+				{
+					std::cout
+						<< "[" << app.id << "] "
+						<< app.company << " - " << app.position
+						<< " (" << app.status << ")\n";
+				}
+
 				return 0;
 			}
 
-			for (const auto &app : apps)
+			case CommandType::Stats:
 			{
-				std::cout
-					<< "#" << app.id << " | "
-					<< app.company << " | "
-					<< app.position << " | "
-					<< app.status << " | "
-					<< app.applied_date
-					<< "\n";
+				const Statistics stats = tracker.compute_statistics();
+
+				if (stats.count_by_status.empty())
+				{
+					std::cout << "No applications found.\n";
+					return 0;
+				}
+
+				std::cout << "Application statistics by status:\n";
+				for (const auto &entry : stats.count_by_status)
+				{
+					std::cout << "  " << entry.first << ": " << entry.second << "\n";
+				}
+
+				return 0;
 			}
 
-			return 0;
-		}
-
-		if (options.command == CommandType::Add)
-		{
-			if (options.company.empty() || options.position.empty())
+			case CommandType::Add:
 			{
-				std::cerr << "Error: --company and --position are required for 'add'.\n";
+				Application app{};
+				app.company = options.company;
+				app.position = options.position;
+				app.location = options.location;
+				app.source = options.source;
+				app.status = options.status;
+				app.notes = options.notes;
+
+				Application saved = tracker.add(app);
+
+				std::cout << "Added application with id " << saved.id << ".\n";
+				return 0;
+			}
+
+			case CommandType::ImportCsv:
+			{
+				if (options.csv_path.empty())
+				{
+					std::cerr << "CSV path is required for import-csv. Use --csv <path>.\n";
+					return 1;
+				}
+
+				CsvImportSource source(options.csv_path);
+				ImportService service(source, repository);
+
+				const ImportResult result = service.run_once();
+
+				if (result.total == 0)
+				{
+					std::cout << "No applications found in CSV file.\n";
+				}
+				else if (result.imported == 0)
+				{
+					std::cout << "CSV contained " << result.total
+						<< " rows, but none could be imported.\n";
+				}
+				else
+				{
+					std::cout << "Imported " << result.imported << " of "
+						<< result.total << " applications from CSV.\n";
+				}
+
+				return 0;
+			}
+
+			case CommandType::ImportRemoteCsv:
+			{
+				if (options.remote_csv_url.empty())
+				{
+					std::cerr << "Remote CSV URL is required for import-remote-csv. "
+						<< "Use --remote-csv-url <url>.\n";
+					return 1;
+				}
+
+				LibcurlHttpClient http_client;
+
+				RemoteCsvConfig config{};
+				config.url = options.remote_csv_url;
+				config.delimiter = ',';
+
+				RemoteCsvImportSource source(http_client, config);
+				ImportService service(source, repository);
+
+				const ImportResult result = service.run_once();
+
+				if (result.total == 0)
+				{
+					std::cout << "No applications found in remote CSV.\n";
+				}
+				else if (result.imported == 0)
+				{
+					std::cout << "Remote CSV contained " << result.total
+						<< " rows, but none could be imported.\n";
+				}
+				else
+				{
+					std::cout << "Imported " << result.imported << " of "
+						<< result.total << " applications from remote CSV.\n";
+				}
+
+				return 0;
+			}
+
+			case CommandType::ImportImap:
+			{
+				std::cerr << "IMAP import is not implemented yet.\n";
 				return 1;
 			}
 
-			Application app;
-			app.company = options.company;
-			app.position = options.position;
-			app.location = options.location;
-			app.source = options.source;
-			app.status = options.status;
-			app.notes = options.notes;
-
-			Application saved = tracker.add(app);
-
-			std::cout << "Added application with id " << saved.id << ".\n";
-			return 0;
-		}
-
-		if (options.command == CommandType::Stats)
-		{
-			const Statistics stats = tracker.compute_statistics();
-
-			if (stats.count_by_status.empty())
-			{
-				std::cout
-					<< "No applications found.\n"
-					<< "There are no statistics to display yet.\n";
-				return 0;
-			}
-
-			std::cout << "Applications by status:\n";
-			for (const auto &entry : stats.count_by_status)
-			{
-				std::cout << "  " << entry.first << ": " << entry.second << "\n";
-			}
-
-			return 0;
-		}
-
-		if (options.command == CommandType::ImportCsv)
-		{
-			if (options.csv_path.empty())
-			{
-				std::cerr << "Error: --csv PATH is required for 'import-csv'.\n";
+			case CommandType::Help:
+			case CommandType::None:
+			case CommandType::Unknown:
+			default:
+				// Already handled above, but keep a defensive default.
+				print_usage();
 				return 1;
-			}
-
-			if (!std::filesystem::exists(options.csv_path))
-			{
-				std::cerr
-					<< "Error: CSV file '" << options.csv_path << "' does not exist.\n"
-					<< "Please check the path and try again.\n";
-				return 1;
-			}
-
-			auto repository = std::make_unique<SqliteApplicationRepository>(options.database_path);
-			JobTracker tracker(*repository);
-
-			CsvImportSource source(options.csv_path);
-			ImportService service(source, *repository);
-
-			const ImportResult result = service.run_once();
-
-			if (result.total == 0)
-			{
-				std::cout
-					<< "No rows found in CSV file '" << options.csv_path << "'.\n"
-					<< "Make sure the file is not empty and has a header row.\n";
-				return 0;
-			}
-
-			if (result.imported == 0)
-			{
-				std::cout
-					<< "No applications were imported from '" << options.csv_path << "'.\n"
-					<< "Check that each row has at least a company or position.\n";
-				return 0;
-			}
-
-			std::cout
-				<< "Imported " << result.imported
-				<< " applications out of " << result.total
-				<< " rows from CSV.\n";
-
-			return 0;
 		}
-
-		std::cerr << "Unhandled command.\n";
-		return 1;
 	}
 	catch (const std::exception &ex)
 	{
 		std::cerr << "Fatal error: " << ex.what() << "\n";
+		return 1;
+	}
+	catch (...)
+	{
+		std::cerr << "Unknown fatal error.\n";
 		return 1;
 	}
 }

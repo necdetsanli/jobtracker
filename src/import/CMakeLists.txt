@@ -3,28 +3,36 @@
 # Import layer: CSV and IMAP-based import sources and the ImportService
 # that coordinates them.
 
-add_library(jobtracker_import
-    # Interfaces and core import types
-    import_source.h
-    import_service.h
-    import_service.cpp
+# Require CURL for HTTP operations in remote CSV import source
+find_package(CURL REQUIRED)
 
-    # CSV-based import source
+add_library(jobtracker_import
+    # CSV-based import sources
     csv_import_source.h
     csv_import_source.cpp
 
-    # IMAP-based import source
+    # Remote CSV over HTTP
+    remote_csv_import_source.h
+    remote_csv_import_source.cpp
+
+    # HTTP-based import source
+    http_client.h
+    http_client.cpp
+
+    # High-level import service
+    import_service.h
+    import_service.cpp
+
+    # IMAP / email-related
+    email_message.h
+    imap_email_client.h
     imap_import_source.h
     imap_import_source.cpp
 
-    # Email abstractions
-    email_client.h
-    email_message.h
-
-    # Placeholder for a future real IMAP client implementation
-    imap_email_client.h
-    # imap_email_client.cpp  # Add here when you implement it
+    # Import abstraction
+    import_source.h
 )
+
 
 # Public include dir so that other targets can include "import/..."
 target_include_directories(jobtracker_import
@@ -34,6 +42,8 @@ target_include_directories(jobtracker_import
 
 # Import logic depends on the core domain model (Application, JobTracker, etc.).
 target_link_libraries(jobtracker_import
-    PUBLIC
-        jobtracker_core
+	PRIVATE
+		jobtracker_core
+		jobtracker_storage_sqlite
+		CURL::libcurl
 )

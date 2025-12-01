@@ -1,17 +1,18 @@
+#include <memory>
+
 #include <catch2/catch_test_macros.hpp>
 
+#include "tests/import/fake_import_source.h"
+#include "tests/core/fake_application_repository.h"
+
 #include "core/job_tracker.h"
-#include "core/application.h"
-#include "core/statistics.h"
 #include "import/import_service.h"
-#include "import/import_source.h"
-#include "import/fake_import_source.h"
-#include "core/fake_application_repository.h"
+
 
 TEST_CASE("ImportService_imports_all_applications_from_source")
 {
 	auto repository = std::make_unique<FakeApplicationRepository>();
-	JobTracker tracker(std::move(repository));
+	JobTracker tracker(*repository);
 
 	FakeImportSource source;
 
@@ -26,7 +27,7 @@ TEST_CASE("ImportService_imports_all_applications_from_source")
 	source.add_application_template(a1);
 	source.add_application_template(a2);
 
-	ImportService service(tracker, source);
+	ImportService service(source, *repository);
 
 	ImportResult result = service.run_once();
 
@@ -42,7 +43,7 @@ TEST_CASE("ImportService_imports_all_applications_from_source")
 TEST_CASE("ImportService_relies_on_jobtracker_to_set_default_status_and_dates")
 {
 	auto repository = std::make_unique<FakeApplicationRepository>();
-	JobTracker tracker(std::move(repository));
+	JobTracker tracker(*repository);
 
 	FakeImportSource source;
 
@@ -52,7 +53,7 @@ TEST_CASE("ImportService_relies_on_jobtracker_to_set_default_status_and_dates")
 
 	source.add_application_template(template_app);
 
-	ImportService service(tracker, source);
+	ImportService service(source, *repository);
 	ImportResult result = service.run_once();
 
 	REQUIRE(result.total == 1);
@@ -72,11 +73,11 @@ TEST_CASE("ImportService_relies_on_jobtracker_to_set_default_status_and_dates")
 TEST_CASE("ImportService_returns_zero_when_source_has_no_applications")
 {
 	auto repository = std::make_unique<FakeApplicationRepository>();
-	JobTracker tracker(std::move(repository));
+	JobTracker tracker(*repository);
 
 	FakeImportSource source; // No templates added.
 
-	ImportService service(tracker, source);
+	ImportService service(source, *repository);
 	ImportResult result = service.run_once();
 
 	REQUIRE(result.total == 0);
