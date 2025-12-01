@@ -68,3 +68,20 @@ TEST_CASE("ImportService_relies_on_jobtracker_to_set_default_status_and_dates")
 	REQUIRE_FALSE(saved.applied_date.empty());
 	REQUIRE_FALSE(saved.last_update.empty());
 }
+
+TEST_CASE("ImportService_returns_zero_when_source_has_no_applications")
+{
+	auto repository = std::make_unique<FakeApplicationRepository>();
+	JobTracker tracker(std::move(repository));
+
+	FakeImportSource source; // No templates added.
+
+	ImportService service(tracker, source);
+	ImportResult result = service.run_once();
+
+	REQUIRE(result.total == 0);
+	REQUIRE(result.imported == 0);
+
+	const auto apps = tracker.list_all();
+	REQUIRE(apps.empty());
+}
