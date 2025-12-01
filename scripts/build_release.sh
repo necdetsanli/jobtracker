@@ -8,9 +8,13 @@ BUILD_DIR="${PROJECT_ROOT}/build-release"
 
 echo "[jobtracker] Build directory: ${BUILD_DIR}"
 
-cmake -S "${PROJECT_ROOT}" -B "${BUILD_DIR}" -DCMAKE_BUILD_TYPE=Release
+# Configure Release build with Ninja generator
+cmake -S "${PROJECT_ROOT}" -B "${BUILD_DIR}" -G Ninja -DCMAKE_BUILD_TYPE=Release
+
+# Build
 cmake --build "${BUILD_DIR}" --parallel
 
+# Run tests (do not fail the script if tests fail in Release)
 (
 	cd "${BUILD_DIR}"
 	ctest --output-on-failure || true

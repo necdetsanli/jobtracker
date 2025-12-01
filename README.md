@@ -69,6 +69,7 @@ Directory structure (simplified):
 
 - C++20-capable compiler (GCC or Clang)
 - CMake ≥ 3.16
+- Ninja (recommended as CMake generator)
 - SQLite3 development files
 - Catch2 v3 (for tests)
 
@@ -79,6 +80,7 @@ sudo apt update
 sudo apt install -y \
   build-essential \
   cmake \
+  ninja-build \
   libsqlite3-dev \
   catch2
 ```
@@ -89,6 +91,8 @@ sudo apt install -y \
 
 ## Building and running tests
 
+### Using the helper script (Debug + Ninja)
+
 From the project root:
 
 ```bash
@@ -97,26 +101,43 @@ From the project root:
 
 This script will:
 
-1. Configure a Debug build under `build/`
+1. Configure a Debug build under `build/` using the Ninja generator
 2. Build all libraries, executables and tests
 3. Run tests via `ctest --output-on-failure`
+
+### Manual Debug build with Ninja
 
 If you prefer to run CMake manually:
 
 ```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
 cmake --build build --parallel
 cd build
 ctest --output-on-failure
 ```
 
+If you omit `-G Ninja`, CMake will use its default generator for your platform (e.g. Unix Makefiles on Linux).
+
+### Release build
+
+There is also a helper script for a Release build:
+
+```bash
+./scripts/build_release.sh
+```
+
+This will:
+
+1. Configure a Release build under `build-release/` using the Ninja generator
+2. Build all targets
+3. Run tests in the Release tree (failures do not cause the script to exit with an error)
+
+
 After a successful build, the CLI binary is typically located at:
 
 ```text
-build/src/jobtracker_cli
+build/bin/jobtracker_cli
 ```
-
-(If you configure a custom `CMAKE_RUNTIME_OUTPUT_DIRECTORY`, it may end up under `build/bin/` instead.)
 
 ---
 
