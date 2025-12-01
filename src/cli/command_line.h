@@ -1,58 +1,47 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-/// Possible top-level commands for the CLI.
+/**
+ * @brief Represents the supported command-line actions of the CLI.
+ */
 enum class CommandType
 {
+	None,
 	List,
 	Add,
-	Stats,
 	ImportCsv,
-	Help,
-	Unknown
+	ImportRemoteCsv,
+	ImportImap
 };
 
-
-/// Parsed representation of command-line arguments for jobtracker_cli.
-///
-/// The same structure is used both in the real CLI and in unit tests.
+/**
+ * @brief Parsed representation of the command-line arguments.
+ */
 struct CommandLineOptions
 {
-	/// Selected command parsed from argv.
-	CommandType command = CommandType::Help;
+	/// Selected command to execute.
+	CommandType command = CommandType::None;
 
-	/// Path to the SQLite database file (default: data/jobtracker.db).
-	std::string database_path = "data/jobtracker.db";
-
-	// Fields for the "add" command:
-	/// Company name for a new application.
-	std::string company;
-
-	/// Position title for a new application.
-	std::string position;
-
-	/// Job location (optional).
-	std::string location;
-
-	/// Source of the application (e.g. "linkedin", "email").
-	std::string source;
-
-	/// Initial status (optional, defaults to "applied" at domain level).
-	std::string status;
-
-	/// Notes for the application (optional).
-	std::string notes;
-
-	/// Path to CSV file for import-csv command.
+	/// Optional path to a local CSV file.
 	std::string csv_path;
+
+	/// Optional remote CSV URL.
+	std::string csv_url;
+
+	/// Optional path to an IMAP configuration file.
+	std::string imap_config_path;
+
+	/// Additional free-form arguments.
+	std::vector<std::string> extra_args;
 };
 
-/// Parses command-line arguments into a CommandLineOptions structure.
-///
-/// This function does not perform any I/O and is therefore easy to unit test.
-///
-/// \param argc Argument count.
-/// \param argv Argument values.
-/// \return Parsed command-line options.
+/**
+ * @brief Parse raw argc/argv into structured command-line options.
+ *
+ * @param argc Argument count as passed from main.
+ * @param argv Argument values as passed from main.
+ * @return Parsed CommandLineOptions.
+ */
 CommandLineOptions parse_arguments(int argc, char **argv);

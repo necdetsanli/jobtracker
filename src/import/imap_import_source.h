@@ -19,9 +19,15 @@ class ImapImportSource : public IImportSource
 public:
 	struct Config
 	{
-		std::string search_expression; ///< IMAP search query (e.g. "UNSEEN", "FROM ...", etc.)
+		/// IMAP mailbox name (e.g. "INBOX" or a Gmail label).
+		std::string mailbox;
+
+		/// IMAP search query (e.g. "UNSEEN", "FROM ...", etc.).
+		std::string search_expression;
+
 		// Future: mapping rules (e.g. regex to extract company/position from subject)
 	};
+
 
 	ImapImportSource(std::unique_ptr<IEmailClient> client, Config config);
 

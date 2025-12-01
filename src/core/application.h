@@ -2,33 +2,35 @@
 
 #include <string>
 
-/// Represents a single job application entry in the system.
+/**
+ * @brief Represents a single job application entry in the tracker.
+ */
 struct Application
 {
-	/// Numeric primary key. Zero means "not persisted yet".
+	/// Unique identifier assigned by the storage layer (e.g. SQLite autoincrement).
 	int id = 0;
 
-	/// Company name (e.g. "ACME Corp").
+	/// Company name of the job application.
 	std::string company;
 
-	/// Position title (e.g. "C++ Developer").
+	/// Position or role title applied for.
 	std::string position;
 
-	/// Location of the job (e.g. "Remote", "Berlin, DE").
+	/// Location of the job (city, country, or "Remote").
 	std::string location;
 
-	/// Source of the application (e.g. "linkedin", "email", "referral").
-	std::string source;
-
-	/// Current status (e.g. "applied", "screening", "interview", "offer", "rejected").
+	/// Current status of the application (e.g. "applied", "interview", "offer").
 	std::string status;
 
-	/// Date when you applied for the job (YYYY-MM-DD).
+	/// Date when the application was submitted (ISO format: YYYY-MM-DD).
 	std::string applied_date;
 
-	/// Date of the last update for this application (YYYY-MM-DD).
+	/// Date of the last status update (ISO format: YYYY-MM-DD).
 	std::string last_update;
 
-	/// Free-form notes (interview feedback, next steps, recruiter info, etc.).
+	/// Source of the application (e.g. "linkedin", "company_portal", "remote_csv").
+	std::string source;
+
+	/// Free-form notes about the application (recruiter name, interview details, etc.).
 	std::string notes;
 };

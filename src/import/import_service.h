@@ -1,42 +1,38 @@
 #pragma once
 
-#include <cstddef>
+#include "core/job_tracker.h"
+#include "import/import_source.h"
 
-class JobTracker;
-class IImportSource;
-
-/// Result summary of a single import run.
-struct ImportResult
-{
-	/// Total number of applications provided by the import source.
-	std::size_t total = 0;
-
-	/// Number of applications successfully stored by the tracker.
-	std::size_t imported = 0;
-};
-
-/// Coordinates importing job applications from an external source into the tracker.
-///
-/// This service does not know *how* the data is fetched (IImportSource),
-/// and it does not know *how* it is persisted (JobTracker + repository).
+/**
+ * @brief Coordinates importing applications from a source into the tracker.
+ *
+ * ImportService pulls applications from an IImportSource and forwards them
+ * to JobTracker. It is intentionally simple so that it can be reused from
+ * the CLI or a future GUI.
+ */
 class ImportService
 {
 public:
-	/// Constructs a new ImportService instance.
-	///
-	/// \param tracker JobTracker used to persist applications.
-	/// \param source  External import source providing Application templates.
+	/**
+	 * @brief Construct an ImportService with a JobTracker and an import source.
+	 *
+	 * @param tracker JobTracker instance used to persist imported applications.
+	 * @param source Import source that provides Application objects.
+	 */
 	ImportService(JobTracker &tracker, IImportSource &source);
 
-	/// Runs a single import pass.
-	///
-	/// The service asks the source for applications, then passes them one by one
-	/// to JobTracker::add(). Basic counters are returned in an ImportResult.
-	///
-	/// \return Summary of the import operation.
-	ImportResult run_once();
+	/**
+	 * @brief Import all applications from the source into the tracker.
+	 *
+	 * This method fetches applications from the source and adds them
+	 * to the tracker one by one.
+	 */
+	void run_once();
 
 private:
+	/// High-level facade for persisting and managing applications.
 	JobTracker &tracker_;
+
+	/// Source that provides applications to be imported.
 	IImportSource &source_;
 };

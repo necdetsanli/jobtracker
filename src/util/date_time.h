@@ -2,13 +2,12 @@
 
 #include <string>
 
-/// Date and time helper functions.
 namespace datetime
 {
-	/// Returns today's date in ISO 8601 format (YYYY-MM-DD).
-	///
-	/// The function uses the local time zone of the system.
-	///
-	/// \return A string representing today's date, for example "2025-01-01".
+	/**
+	 * @brief Get today's date in ISO format (YYYY-MM-DD) using local time.
+	 *
+	 * @return A string containing the current local date in ISO format.
+	 */
 	std::string today_iso();
 }
