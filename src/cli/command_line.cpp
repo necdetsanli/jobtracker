@@ -34,6 +34,10 @@ CommandLineOptions parse_arguments(int argc, char **argv)
 		options.command = CommandType::Help;
 		return options;
 	}
+	else if (command == "import-csv")
+	{
+		options.command = CommandType::ImportCsv;
+	}
 	else
 	{
 		options.command = CommandType::Unknown;
@@ -108,6 +112,14 @@ CommandLineOptions parse_arguments(int argc, char **argv)
 			if (value != nullptr)
 			{
 				options.notes = value;
+			}
+		}
+		else if (arg == "--csv")
+		{
+			const char *value = require_value("--csv");
+			if (value != nullptr)
+			{
+				options.csv_path = value;
 			}
 		}
 	}

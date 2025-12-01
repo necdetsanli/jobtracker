@@ -17,6 +17,7 @@ add_subdirectory(storage)
 # Import layer
 add_library(jobtracker_import
 	import/import_service.cpp
+	import/csv_import_source.cpp
 )
 
 target_link_libraries(jobtracker_import

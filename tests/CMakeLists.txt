@@ -8,6 +8,7 @@ set(TEST_SOURCES
 	storage/test_sqlite_repository.cpp
 	cli/test_command_line.cpp
 	import/test_import_service.cpp
+	import/test_csv_import_source.cpp
 )
 
 add_executable(jobtracker_tests ${TEST_SOURCES})

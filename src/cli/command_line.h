@@ -8,9 +8,11 @@ enum class CommandType
 	List,
 	Add,
 	Stats,
+	ImportCsv,
 	Help,
 	Unknown
 };
+
 
 /// Parsed representation of command-line arguments for jobtracker_cli.
 ///
@@ -41,6 +43,9 @@ struct CommandLineOptions
 
 	/// Notes for the application (optional).
 	std::string notes;
+
+	/// Path to CSV file for import-csv command.
+	std::string csv_path;
 };
 
 /// Parses command-line arguments into a CommandLineOptions structure.

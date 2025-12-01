@@ -51,3 +51,22 @@ TEST_CASE("parse_arguments_parses_add_command_with_required_fields")
 	REQUIRE(options.position == "C++ Developer");
 	REQUIRE(options.status == "applied");
 }
+
+TEST_CASE("parse_arguments_parses_import_csv_command")
+{
+	char *argv[] = {
+		const_cast<char *>("jobtracker_cli"),
+		const_cast<char *>("import-csv"),
+		const_cast<char *>("--csv"),
+		const_cast<char *>("apps.csv"),
+		const_cast<char *>("--db"),
+		const_cast<char *>("jobtracker.db")
+	};
+	int argc = 6;
+
+	CommandLineOptions options = parse_arguments(argc, argv);
+
+	REQUIRE(options.command == CommandType::ImportCsv);
+	REQUIRE(options.csv_path == "apps.csv");
+	REQUIRE(options.database_path == "jobtracker.db");
+}
