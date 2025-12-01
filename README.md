@@ -135,9 +135,10 @@ This will:
 
 After a successful build, the CLI binary is typically located at:
 
-```text
-build/bin/jobtracker_cli
-```
+- Debug build: `build/bin/jobtracker_cli`
+- Release build: `build-release/bin/jobtracker_cli`
+
+(If you use a different build directory, replace `build` / `build-release` accordingly.)
 
 ---
 
