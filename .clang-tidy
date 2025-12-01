@@ -1,0 +1,28 @@
+Checks: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+  hicpp-*,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-owning-memory,
+  -cppcoreguidelines-pro-type-reinterpret-cast,
+  -hicpp-vararg,
+  -hicpp-no-array-decay
+
+WarningsAsErrors: >
+  clang-analyzer-*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  hicpp-*
+
+HeaderFilterRegex: 'src/.*'
+AnalyzeTemporaryDtors: true
+
+FormatStyle:     file
+UseColor:        true

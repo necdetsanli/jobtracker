@@ -1,0 +1,66 @@
+# Normalize line endings: store LF in the repo, check out as LF on all platforms
+* text=auto eol=lf
+
+###############################################################################
+# Source code (C / C++)
+###############################################################################
+*.c     text diff=cpp
+*.cc    text diff=cpp
+*.cpp   text diff=cpp
+*.cxx   text diff=cpp
+*.h     text diff=cpp
+*.hh    text diff=cpp
+*.hpp   text diff=cpp
+
+###############################################################################
+# CMake files
+###############################################################################
+CMakeLists.txt text
+*.cmake        text
+
+###############################################################################
+# Scripts
+###############################################################################
+*.sh  text eol=lf
+*.py  text eol=lf
+
+###############################################################################
+# Config / docs
+###############################################################################
+*.md           text
+*.markdown     text
+*.json         text
+*.yml          text
+*.yaml         text
+*.toml         text
+*.ini          text
+*.cfg          text
+*.editorconfig text
+*.gitignore    text
+STYLE.md       text
+
+###############################################################################
+# Data files
+###############################################################################
+*.csv  text
+*.sql  text
+
+###############################################################################
+# Binary assets (no EOL normalization, no diff)
+###############################################################################
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.bmp    binary
+
+*.db     binary
+*.sqlite binary
+
+*.pdf    binary
+
+*.dll    binary
+*.so     binary
+*.dylib  binary
+*.exe    binary

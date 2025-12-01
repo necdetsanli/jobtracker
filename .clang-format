@@ -1,0 +1,30 @@
+BasedOnStyle: LLVM
+Language: Cpp
+
+# Indentation
+UseTab: Always
+IndentWidth: 4
+TabWidth: 4
+
+# Braces: Allman style (brace on the next line)
+BreakBeforeBraces: Allman
+
+# Line length
+ColumnLimit: 120
+
+# Includes
+SortIncludes: true
+IncludeBlocks: Regroup
+
+# C++ standard
+Standard: c++20
+
+# Namespace indentation
+NamespaceIndentation: None
+
+# Aligning & wrapping
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: Never
