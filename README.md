@@ -378,6 +378,19 @@ Tests cover:
   - `scripts` – helper scripts (build, etc.)
 - Code is written with testability in mind; most logic lives in libraries, not in `main()`.
 
+### Cross-platform notes
+
+The project is designed to be portable across platforms:
+
+- Uses only standard C++ and the C++ standard library for core logic
+- Avoids POSIX-only APIs; platform-specific code paths (e.g. localtime_r vs. localtime_s) are guarded with preprocessor checks
+- Compiler flags are configured conditionally in CMake (MSVC vs. GCC/Clang)
+
+Planned:
+
+- Windows support using MSVC + CMake + Ninja
+- Optional vcpkg integration for dependencies such as SQLite3 and Catch2
+
 ---
 
 ## Possible future work
