@@ -1,0 +1,29 @@
+# Build artifacts
+/build/
+/CMakeFiles/
+/CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Binaries and libraries
+/bin/
+/lib/
+
+# Compilation database
+compile_commands.json
+
+# Local data files (SQLite DB etc.)
+/data/*.db
+
+# Python virtualenv
+/.venv/
+
+# Qt / IDE junk
+*.user
+*.pro.user
+*.qbs.user
+*.qmlproject.user
+
+# OS-specific
+.DS_Store
+Thumbs.db
