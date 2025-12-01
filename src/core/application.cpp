@@ -1,4 +1,7 @@
-#include "core/application.h"
+/// \file
+/// \brief Implementation unit for the Application model.
+///
+/// Currently this file does not contain any logic, but it exists to keep
+/// the core library structure consistent.
 
-// Currently no implementation needed for Application.
-// This file exists so that the core library has at least one core source file.
+#include "core/application.h"
