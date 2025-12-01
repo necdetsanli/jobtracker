@@ -47,6 +47,7 @@ Thumbs.db
 /data/*.db
 /data/*.sqlite
 /data/*.log
+/data/*.csv
 
 # Test / coverage artifacts
 *.gcda
