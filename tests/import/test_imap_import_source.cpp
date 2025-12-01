@@ -2,7 +2,8 @@
 
 #include "import/imap_import_source.h"
 #include "import/email_message.h"
-#include "tests/import/fake_email_client.h"
+#include "fake_email_client.h"
+
 
 TEST_CASE("ImapImportSource_converts_emails_to_applications")
 {
